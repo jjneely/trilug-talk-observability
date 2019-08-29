@@ -1,0 +1,70 @@
+\input{preamble.tex}
+
+\title{Observability Through the Lens of\\Metrics and Events}
+%%\subtitle{Subtitle Foo on Bar}
+\institute{42 Lines, Inc.}
+\author{Jack Neely jjneely@42lines.net\\Breandan Dezendorf breandan@42lines.net}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}
+    \frametitle{What's a Metric?}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{What's an Event?}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Graphite's \t{summarize()} and Non-Aligned Data}
+
+    \begin{center}
+        \begin{tikzpicture}[]
+            \begin{axis}[
+                width=14cm,
+                height=7cm,
+                xlabel=Time,
+                ylabel=Count,
+                xticklabel={$t_{\pgfmathprintnumber{\tick}}$},
+                xmin=0, ymin=0, xmax=180
+            ]
+                \addplot+[only marks] coordinates {
+                    (2, 42)  % 118
+                    (17, 37)
+                    (32, 11)
+                    (47, 28)
+                    (62, 19) % 104
+                    (77, 40)
+                    (92, 17)
+                    (107, 28)
+                    (122, 21) % 67+N
+                    (137, 16)
+                    (152, 30)
+                    (167, 23)
+                };
+                \addplot+[ybar interval,fill=pink,mark=none] coordinates {
+                    (0, 118)
+                    (60, 104)
+                    (120, 90)
+                    (180, 0) % ybar interval extra coord
+                };
+                \draw[ultra thick,magenta,|->,shorten >=1pt] (47,19) to (62,19);
+                \draw[ultra thick,magenta,|->,shorten >=1pt] (107,21) to (122,21);
+            \end{axis}
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}[standout]
+    Thank You!
+\end{frame}
+
+\appendix
+
+\end{document}

@@ -1,0 +1,10 @@
+*~
+*.pdf
+*.Rhistory
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
