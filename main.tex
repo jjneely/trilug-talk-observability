@@ -11,9 +11,30 @@
 
 \maketitle
 
-\begin{frame}
+\begin{frame}[fragile]
     \frametitle{What's a Metric?}
 
+    Prometheus:
+\begin{lstlisting}
+# HELP http_requests_total total HTTP hits
+# TYPE http_requests_total counter
+http_requests_total 34877
+# HELP node_load1 1m load average.
+# TYPE node_load1 gauge
+node_load1 1.35
+\end{lstlisting}
+
+    Graphite:
+\begin{lstlisting}
+servers.A.http.hits 34877 1234567890
+servers.A..collectd.load.load.shortterm 1.35 1234567890
+\end{lstlisting}
+
+    OpenTSDB:
+\begin{lstlisting}
+put http.hits 1234567890 34877 host=A
+put proc.loadavg.1min 1234567890 1.35 host=A
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}
