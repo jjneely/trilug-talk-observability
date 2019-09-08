@@ -1,4 +1,5 @@
 \input{preamble.tex}
+\usepgfplotslibrary{fillbetween}
 
 \title{Observability Through the Lens of\\Metrics and Events}
 %%\subtitle{Subtitle Foo on Bar}
@@ -27,7 +28,7 @@ node_load1 1.35
     Graphite:
 \begin{lstlisting}
 servers.A.http.hits 34877 1234567890
-servers.A..collectd.load.load.shortterm 1.35 1234567890
+servers.A.collectd.load.load.shortterm 1.35 1234567890
 \end{lstlisting}
 
     OpenTSDB:
@@ -38,12 +39,156 @@ put proc.loadavg.1min 1234567890 1.35 host=A
 \end{frame}
 
 \begin{frame}
+    \frametitle{Time Series: \t{sum(rate(http\_requests\_total[5m]))}}
+    \begin{center}
+
+   \begin{tikzpicture}[]
+        \begin{axis}[
+            width=14cm,
+            height=7cm,
+            xlabel=Time,
+            ylabel=Hits/s,
+            xticklabel={$t_{\pgfmathprintnumber{\tick}}$},
+            enlargelimits=false,
+            ymin=40,
+            ymax=110,
+        ]
+            \addplot+[no markers, thick] table[x expr=\coordindex, y index=0]{raw};
+        \end{axis}
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Anomaly Detection: Moving Median 1 Hour Offset 10\% Range}
+    \begin{center}
+
+   \begin{tikzpicture}[]
+        \begin{axis}[
+            width=14cm,
+            height=7cm,
+            xlabel=Time,
+            ylabel=Hits/s,
+            xticklabel={$t_{\pgfmathprintnumber{\tick}}$},
+            enlargelimits=false,
+            ymin=40,
+            ymax=110,
+        ]
+            \addplot+[no markers, color=blue, thick] table[x expr=\coordindex, y index=0]{raw};
+            \addplot+[no markers, name path=high, color=grey] table[x expr=\coordindex, y index=0]{high};
+            \addplot+[no markers, name path=low, color=grey] table[x expr=\coordindex, y index=0]{low};
+            \addplot [grey] fill between [of=high and low];
+        \end{axis}
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Basic Data Types}
+
+    \textbf{Gauge:} Fluctuating Arbitrary Measurement
+    \begin{itemize}
+        \item Temperature
+        \item Queue Size
+        \item In Use File Descriptors
+    \end{itemize}
+
+    \textbf{Counter:} Continuously Incrementing (and Resetting)
+    \begin{itemize}
+        \item Number of Bytes / Packets on a Network Interface
+        \item Events
+    \end{itemize}
+
+    \textbf{Stat:} Summary Statistics for a Distribution of Events
+    \begin{itemize}
+        \item Duration of Event
+        \item Size of Event
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Gauges}
+
+    \begin{theorem}[Nyquist–Shannon Sampling]
+        If a function $x(t)$ contains no frequencies higher than $B$ hertz, it
+        is completely determined by giving its ordinates at a series of points
+        spaced $1 / 2B$ seconds apart.
+    \end{theorem}
+
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{CPT-sound-nyquist-thereom-1.5percycle.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Counters}
+
+    \begin{definition}[Monotonic Function]
+        A function is called monotonically increasing if for all $x$ and
+        $y$ such that $x \leq y$ one has
+        $f(x) \leq f(y)$, so $f$
+        preserves the order.
+    \end{definition}
+
+    \begin{center}
+    \begin{tikzpicture}[]
+        \begin{axis}[
+            width=5cm,
+            height=5cm,
+            enlargelimits=false,
+            ticks=none,
+            axis x line=bottom,
+            axis y line=left,
+        ]
+            \addplot+[no marks, thick] {(x^3};
+        \end{axis}
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}
     \frametitle{What's an Event?}
 
 \end{frame}
 
 \begin{frame}
-    \frametitle{Graphite's \t{summarize()} and Non-Aligned Data}
+    \frametitle{Options for Metrics of Events and Cardinality}
+
+    \begin{columns}
+        \begin{column}{0.3\linewidth}
+            StatsD -- Generate Summary Metrics Per Interval
+            \begin{itemize}
+                \item Count
+                \item Sum
+                \item Min
+                \item Max
+                \item Percentiles
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.7\linewidth}
+            \begin{center}
+            \begin{tikzpicture}
+                \begin{axis}[
+                    ylabel=Frequency,
+                    xlabel=Cummlative Histogram,
+                    ybar interval,
+                    grid=none,
+                    xtick align=inside,
+                    x tick label as interval=false,
+                    xtick=,% reset from ybar interval
+                    %xticklabel={$(\pgfmathprintnumber\tick - \pgfmathprintnumber\nexttick)$},
+                ]
+
+                    \addplot+[hist={cumulative,data=x,data max=120,bins=12}]file {rand_hist.dat};
+                \end{axis}
+            \end{tikzpicture}
+            \end{center}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Data Alignment and Reporting}
 
     \begin{center}
         \begin{tikzpicture}[]
@@ -77,9 +222,33 @@ put proc.loadavg.1min 1234567890 1.35 host=A
                 };
                 \draw[ultra thick,magenta,|->,shorten >=1pt] (47,19) to (62,19);
                 \draw[ultra thick,magenta,|->,shorten >=1pt] (107,21) to (122,21);
+                \draw[ultra thick,magenta,|->] (167,15) to (180,15);
             \end{axis}
         \end{tikzpicture}
     \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{How Do Logs Suck?}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Guidelines for Using Metrics}
+
+    \begin{itemize}
+        \item Count Performance
+        \item Key Health Indicators
+        \item Limited Debugging with Feature Flags
+        \item Make a Plan for Cardinality
+        \item Look for Histogram Support
+        \item Have a ``kit'' for SOA Metrics
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Guidelines for Using Logs and Events}
+
 \end{frame}
 
 \begin{frame}[standout]
