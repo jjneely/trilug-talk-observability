@@ -228,10 +228,76 @@ put proc.loadavg.1min 1234567890 1.35 host=A
     \end{center}
 \end{frame}
 
-\begin{frame}
-    \frametitle{How Do Logs Suck?}
+\begin{frame}[fragile]
+    \frametitle{What's an Event?}
+
+    An event is simply a record of a something happening at a given time.
+Standard apache access log:
+\begin{lstlisting}
+127.0.0.1 - - [09/Sep/2019:31:32:000 -0000] "GET / HTTP/1.0" 200 2216
+\end{lstlisting}
+
+JSONLines formatted example of the same event:
+\begin{lstlisting}
+{
+  "timestamp":"2019-09-12T19:31:32.000Z",
+  "http_status_code": 200,
+  "request": "GET / HTTP/1.0",
+  "http_size_bytes": 2216
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Event Schema}
+
+    Schema on read Schema on write
+    Splunk is on-read, Elasticsearch/Solr/Graylog are on Write
 
 \end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Schema On Write: Elasticsearch/Lucene}
+    Keeps costs in control
+    Allows for column-stride reads
+    Makes filters very fast
+    Data types important - lucene isn't just for text anymore
+     - float
+     - geopoint
+     - geoshape
+     - keyword vs text
+\end{frame}
+
+\begin{frame}
+    \frametitle{How Do Events Compare to Metrics?}
+    \begin{itemize}
+      \item 100x the cost to run an event system than a metrics system
+      \item Free-form data blobs are costly to parse, store, retrieve and search
+      \item Costly in memory, disk, CPU, and network I/O
+      \item Guidelines for organization of data is hand wavy at best
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why Use Events At All?}
+    \begin{itemize}
+      \item Able to investigate data after the fact
+      \item Cardinality isn't nearly as expensive as it is for metrics
+      \item Events often have more than one metric associated
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Example: latency per endpoint}
+    \begin{itemize}
+      \item Metric for latency per endpoint is cheap and fast. loading 30 days takes 1s
+      \item Event calculation for the same takes 90s if it complets at all
+      \item Now, get latency per endpoint per country
+      \item With metrics, you can't if you didn't know you wanted it
+    \end{itemize}
+\end{frame}
+
+
 
 \begin{frame}
     \frametitle{Guidelines for Using Metrics}
@@ -248,8 +314,32 @@ put proc.loadavg.1min 1234567890 1.35 host=A
 
 \begin{frame}
     \frametitle{Guidelines for Using Logs and Events}
-
+    Event size matters
+    Parsing steps matter
+    Storage costs and speed matter
+    Sampling
 \end{frame}
+
+\begin{frame}
+    \frametitle{Three ways to make logging faster/better/more}
+\end{frame}
+\begin{frame}
+    \frametitle{consistent hashing to coorelate Events}
+\end{frame}
+
+\begin{frame}
+    \frametitle{sampling based on the consistent hash score}
+\end{frame}
+
+\begin{frame}
+               save sampling rate to re-hyrdrate data with later
+\end{frame}
+
+
+    
+
+
+
 
 \begin{frame}[standout]
     Thank You!
