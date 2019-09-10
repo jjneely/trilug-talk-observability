@@ -258,21 +258,27 @@ JSONLines formatted example of the same event:
 }
     \end{lstlisting}
     Lucene isn't just for text anymore!
-    \begin{lstlisting}
-- datetime
-- ip addresses
-- keyword
-- geopoint
-    \end{lstlisting}
+    \begin{itemize}
+        \item Datetime
+        \item IP Addresses
+        \item Keyword
+        \item Geopoint
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{How Do Events Compare to Metrics?}
+
+    Disadvantages
+
     \begin{itemize}
-      \item Events are ~100x more expensive than metrics
-      \item Costs split evently in memory, disk, CPU, and network I/O
-      \item Guidelines for organization of data is hand wavy at best
+        \item Events are roughly 100x more expensive than metrics
+        \item Costs split evenly in memory, disk, CPU, and network I/O
+        \item Guidelines for organization of data is hand wavy at best
     \end{itemize}
+
+    Advantages
+
     \begin{itemize}
       \item Allows for ex post facto data exploration
       \item Finds needles in haystacks that p99 values can't
