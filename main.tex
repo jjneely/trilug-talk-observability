@@ -116,7 +116,7 @@ put proc.loadavg.1min 1234567890 1.35 host=A
     \end{theorem}
 
     \begin{center}
-        \includegraphics[width=0.8\linewidth]{CPT-sound-nyquist-thereom-1.5percycle.png}
+        \includegraphics[width=0.8\linewidth]{CPT-sound-nyquist-thereom-1_5percycle.png}
     \end{center}
 \end{frame}
 
@@ -227,79 +227,57 @@ put proc.loadavg.1min 1234567890 1.35 host=A
 
 \begin{frame}[fragile]
     \frametitle{What's an Event?}
-An event is simply a record of a something happening at a given time.
-\\
 Standard apache access log:
 \begin{lstlisting}
-127.0.0.1 - - [12/Sep/2019:31:32:000 -0000] "GET / HTTP/1.0" 200 2216
+192.168.1.100 - bdezendorf [12/Sep/2019:31:32:000 -0000] "GET / HTTP/1.0" 200 2216
 \end{lstlisting}
-\\
+
 JSONLines formatted example of the same event:
 \begin{lstlisting}
 {
   "timestamp":"2019-09-12T19:31:32.000Z",
+  "http_size_bytes": 2216,
   "http_status_code": 200,
   "request": "GET / HTTP/1.0",
-  "http_size_bytes": 2216
+  "remote_address": "192.168.1.100",
+  "remote_user": "bdezendorf"
 }
 \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{Event Schema}
-
-    Schema on read Schema on write
-    Splunk is on-read, Elasticsearch/Solr/Graylog are on Write
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{Schema On Write: Elasticsearch/Lucene}
-    Keeps costs in control
-    Allows for column-stride reads
-    Makes filters very fast
-\end{frame}
-\begin{frame}[fragile]
-    \frametitle{Common Data Types}
+    \frametitle{Event Schema and Structure}
+    \begin{lstlisting}
+{
+  "timestamp":"2019-09-12T19:31:32.000Z",
+  "http_size_bytes": 2216,
+  "http_status_code": 200,
+  "request": "GET / HTTP/1.0",
+  "remote_address": "192.168.1.100",
+  "remote_user": "bdezendorf"
+}
+    \end{lstlisting}
     Lucene isn't just for text anymore!
     \begin{lstlisting}
-    - keyword vs text
-    - float
-    - geopoint
-    - geoshape
+- datetime
+- ip addresses
+- keyword
+- geopoint
     \end{lstlisting}
 \end{frame}
 
 \begin{frame}
     \frametitle{How Do Events Compare to Metrics?}
     \begin{itemize}
-      \item 100x the cost to run an event system than a metrics system
-      \item Free-form data blobs are costly to parse, store, retrieve and search
-      \item Costly in memory, disk, CPU, and network I/O
+      \item Events are ~100x more expensive than metrics
+      \item Costs split evently in memory, disk, CPU, and network I/O
       \item Guidelines for organization of data is hand wavy at best
     \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Why Use Events At All?}
     \begin{itemize}
-      \item Able to investigate data after the fact
-      \item Cardinality isn't nearly as expensive as it is for metrics
-      \item Events often have more than one metric associated
+      \item Allows for ex post facto data exploration
+      \item Finds needles in haystacks that p99 values can't
     \end{itemize}
 \end{frame}
-
-\begin{frame}
-    \frametitle{Example: latency per endpoint}
-    \begin{itemize}
-      \item Metric for latency per endpoint is cheap and fast. loading 30 days takes 1s
-      \item Event calculation for the same takes 90s if it complets at all
-      \item Now, get latency per endpoint per country
-      \item With metrics, you can't if you didn't know you wanted it
-    \end{itemize}
-\end{frame}
-
-
 
 \begin{frame}
     \frametitle{Guidelines for Using Metrics}
@@ -316,38 +294,55 @@ JSONLines formatted example of the same event:
 
 \begin{frame}
     \frametitle{Guidelines for Using Logs and Events}
-    Event size matters
-    Parsing steps matter
-    Storage costs and speed matter
-    Sampling
+    \begin{itemize}
+        \item Event size influences speed at every stage of the pipeline
+        \item Do as little log processing as possible
+        \item Sampling, rollup, and reporting
+    \end{itemize}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Use Consistent Hashing to Coorelate Events}
-    Generate a hash at the loadbalancer or entrypoint
-    Save them as keywords in the event
-    Allows for "find all events matching uuid=foo"
-\end{frame}
+\begin{frame}[fragile]
+    \frametitle{Use Hashing for Event Management}
+    \begin{itemize}
+        \item Generate request uuid at the loadbalancer
+        \item Pass them through, re-emitting them in every event
+    \end{itemize}
+    \begin{lstlisting}
+request_id:19CADF41-11BE-421D-89FA-52DBA8315A1A
+    \end{lstlisting}
+    \begin{itemize}
+        \item MURMUR3 hash the request id or event and divide by maxint
+    \end{itemize}
+    \begin{lstlisting}
+request_id_sampling_score:0.01799897874
+    \end{lstlisting}
 
-\begin{frame}
-    \frametitle{Use Consistent Hashing to Coorelate Events}
-    Murmur3 hashing is fast, memory safe and has a very consistent spread
-    logstash code example
-\end{frame}
-
-\begin{frame}
-    \frametitle{sampling based on the consistent hash score}
-    Once you have a murmur3 hash (which is a 32bit value), you can simply divide by maxint to get a score
-    eg: a hash value of (X) is the numeric (Y) and when divided out is 0.3421
-    Drop anything below a given value
-    Send to a longer term index
+    \begin{lstlisting}
+if ( [logstash][sampling_score] >= [logstash][long_tail_rate] ){
+  mutate {
+    replace => [ "[@metadata][retention]", "365" ]
+  }
+  ruby {
+    code => "event.set('[logstash][scaledCount]',
+    1 / ( 1 - event.get('[logstash][long_tail_rate]') ))"
+  }
+}
+\end{lstlisting}
+        
 \end{frame}
 
 \begin{frame}
     \frametitle{save sampling rate to re-hyrdrate data with later}
-    If you know your sampling score, save it to the event record
-    Also save a scaledCount score, which is the inverse of the sampling rate. (eg, a sampling 1/10 events means the scaledCount value is 10/1)
-    When graphing, simply run a sum aggregation on scaledCount rather than a simple count
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{query-full.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{save sampling rate to re-hyrdrate data with later}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{query-sampled.png}
+    \end{center}
 \end{frame}
 
 
