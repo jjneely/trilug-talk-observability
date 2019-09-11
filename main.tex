@@ -248,6 +248,12 @@ JSONLines formatted example of the same event:
 \begin{frame}[fragile]
     \frametitle{Event Schema and Structure}
 
+    \begin{center}
+        Lucene isn't just for text anymore!
+    \end{center}
+
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
     \begin{lstlisting}
 {
   "timestamp":"2019-09-12T19:31:32.000Z",
@@ -258,13 +264,17 @@ JSONLines formatted example of the same event:
   "remote_user": "bdezendorf"
 }
     \end{lstlisting}
-    Lucene isn't just for text anymore!
-    \begin{itemize}
-        \item Datetime
-        \item IP Addresses
-        \item Keyword
-        \item Geopoint
-    \end{itemize}
+        \end{column}
+
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item Datetime
+                \item IP Addresses
+                \item Keyword
+                \item Geopoint
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -296,6 +306,8 @@ JSONLines formatted example of the same event:
         \item Make a Plan for Cardinality
         \item Look for Histogram Support
         \item Have a ``kit'' for SOA Metrics
+        \item Team or Application Namespaces
+        \item Identify Important Aggregations and Ditch the Rest
     \end{itemize}
 \end{frame}
 
@@ -310,15 +322,13 @@ JSONLines formatted example of the same event:
 
 \begin{frame}[fragile]
     \frametitle{Use Hashing for Event Management}
-    \begin{itemize}
-        \item Generate request uuid at the loadbalancer
-    \end{itemize}
+
+    Generate request uuid at the loadbalancer
     \begin{lstlisting}
 request_id:19CADF41-11BE-421D-89FA-52DBA8315A1A
     \end{lstlisting}
-    \begin{itemize}
-        \item MURMUR3 the id, divide by maxint
-    \end{itemize}
+
+    MURMUR3 the id, divide by maxint
     \begin{lstlisting}
 request_id_sampling_score:0.01799897874
     \end{lstlisting}
@@ -334,7 +344,6 @@ if ( [logstash][sampling_score] >= [logstash][long_tail_rate] ){
   }
 }
 \end{lstlisting}
-        
 \end{frame}
 
 \begin{frame}
@@ -351,11 +360,13 @@ if ( [logstash][sampling_score] >= [logstash][long_tail_rate] ){
     \end{center}
 \end{frame}
 
+\begin{frame}[standout]
+    \begin{center}
+        \includegraphics[width=0.5\linewidth]{cover-square.jpg}
 
-    
-
-
-
+        \href{https://operations.fm}{operations.fm}
+    \end{center}
+\end{frame}
 
 \begin{frame}[standout]
     Thank You!
