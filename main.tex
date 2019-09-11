@@ -247,6 +247,7 @@ JSONLines formatted example of the same event:
 
 \begin{frame}[fragile]
     \frametitle{Event Schema and Structure}
+
     \begin{lstlisting}
 {
   "timestamp":"2019-09-12T19:31:32.000Z",
@@ -311,13 +312,12 @@ JSONLines formatted example of the same event:
     \frametitle{Use Hashing for Event Management}
     \begin{itemize}
         \item Generate request uuid at the loadbalancer
-        \item Pass them through, re-emitting them in every event
     \end{itemize}
     \begin{lstlisting}
 request_id:19CADF41-11BE-421D-89FA-52DBA8315A1A
     \end{lstlisting}
     \begin{itemize}
-        \item MURMUR3 hash the request id or event and divide by maxint
+        \item MURMUR3 the id, divide by maxint
     \end{itemize}
     \begin{lstlisting}
 request_id_sampling_score:0.01799897874
