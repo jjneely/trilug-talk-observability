@@ -374,4 +374,27 @@ if ( [logstash][sampling_score] >= [logstash][long_tail_rate] ){
 
 \appendix
 
+\begin{frame}[fragile]
+    \frametitle{Anomaly Detection Prometheus Examples}
+
+\begin{lstlisting}
+  - record: job:http_requests:rate5m
+    expr: sum(rate(http_requests_total[5m]))
+
+  - record: job:http_requests:rate5m_forecast
+    expr: quantile_over_time(0.5, job:http_requests:rate5m[1h] offset 1h)
+
+  - alert: AnomalyFound
+    expr: abs(job:http_requests:rate5m - job:http_requests:rate5m_forecast)
+      / job:http_requests:rate5m_forecast > 0.1
+    for: 3m
+    labels:
+      severity: page
+    annotations:
+      summary: Anomaly Found
+      description: Red Alert
+      runbook: http://wiki.example.com/AnomalyFound
+\end{lstlisting}
+\end{frame}
+
 \end{document}
